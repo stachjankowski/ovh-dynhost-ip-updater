@@ -35,14 +35,6 @@ func findDynHostRecord(client *ovh.Client, zone string, subDomain string) (*DynH
 	return nil, fmt.Errorf("No DynHost for zone: %s sub-domain: %s in OVH", zone, subDomain)
 }
 
-func ParseIP(value []byte) (*netip.Addr, error) {
-	ip, ok := netip.AddrFromSlice([]byte(value))
-	if !ok {
-		return nil, fmt.Errorf("Invalid ip format")
-	}
-	return &ip, nil
-}
-
 func updateDynHostIP(client *ovh.Client, zone string, dynHostId int, newIp netip.Addr) error {
 	params := &DynHostRecordPut{IP: newIp.String()}
 	if err := client.Put(fmt.Sprintf("/domain/zone/%s/dynHost/record/%d", zone, dynHostId), params, nil); err != nil {
@@ -51,38 +43,38 @@ func updateDynHostIP(client *ovh.Client, zone string, dynHostId int, newIp netip
 	return nil
 }
 
-func GetIp(url string, jsonPath string) (*netip.Addr, error) {
+func GetIp(url string, jsonPath string) (netip.Addr, error) {
 	req, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return netip.Addr{}, err
 	}
 	defer req.Body.Close()
 
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		return nil, err
+		return netip.Addr{}, err
 	}
 
 	// raw format
 	if jsonPath == "" {
-		return ParseIP(body)
+		return netip.ParseAddr(string(body))
 	}
 
 	// json
 	root, err := ajson.Unmarshal(body)
 	if err != nil {
-		return nil, err
+		return netip.Addr{}, err
 	}
 	nodes, err := root.JSONPath(jsonPath)
 	for _, node := range nodes {
 		value, err := node.GetString()
 		if err != nil {
-			return nil, err
+			return netip.Addr{}, err
 		}
-		return ParseIP([]byte(value))
+		return netip.ParseAddr(value)
 	}
 
-	return nil, fmt.Errorf("There is no IP (%s) in result: %s", jsonPath, body)
+	return netip.Addr{}, fmt.Errorf("There is no IP (%s) in result: %s", jsonPath, body)
 }
 
 func GetClient() (*ovh.Client, error) {
@@ -137,10 +129,10 @@ func main() {
 	})
 
 	for {
-		var publicIP *netip.Addr
+		publicIP := netip.Addr{}
 		var err error
 		if args.IP != "" {
-			publicIP, err = ParseIP([]byte(args.IP))
+			publicIP, err = netip.ParseAddr(args.IP)
 			if err != nil {
 				log.Error(err)
 			}
@@ -154,7 +146,7 @@ func main() {
 			}).Debug("Found public IP")
 		}
 
-		ok, err := CheckAndUpdate(*publicIP, args.Zone, args.SubDomain)
+		ok, err := CheckAndUpdate(publicIP, args.Zone, args.SubDomain)
 		if err != nil {
 			log.Error("Error: %v\n", err)
 		}
