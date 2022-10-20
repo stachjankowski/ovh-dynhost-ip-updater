@@ -1,4 +1,4 @@
-package main
+package ovhdynhost
 
 type DynHostRecord struct {
 	SubDomain string `json:"subDomain"`

@@ -6,17 +6,19 @@ import (
 
 	arg "github.com/alexflint/go-arg"
 	"github.com/sirupsen/logrus"
+	"github.com/stachjankowski/ovh-dynhost-ip-updater/iptools"
+	"github.com/stachjankowski/ovh-dynhost-ip-updater/ovhdynhost"
 )
 
 var log = logrus.New()
 
 func CheckAndUpdate(publicIP netip.Addr, zone string, subDomain string) (bool, error) {
-	client, err := GetClient()
+	client, err := ovhdynhost.GetClient()
 	if err != nil {
 		return false, err
 	}
 
-	dynHostRecord, err := FindDynHostRecord(client, zone, subDomain)
+	dynHostRecord, err := ovhdynhost.FindDynHostRecord(client, zone, subDomain)
 	if err != nil {
 		return false, err
 	}
@@ -29,7 +31,7 @@ func CheckAndUpdate(publicIP netip.Addr, zone string, subDomain string) (bool, e
 	}).Debug("Found DynHost record")
 
 	if dynHostRecord.IP != publicIP.String() {
-		if err := UpdateDynHostIP(client, zone, dynHostRecord.ID, publicIP); err != nil {
+		if err := ovhdynhost.UpdateDynHostIP(client, zone, dynHostRecord.ID, publicIP); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -61,7 +63,7 @@ func main() {
 				log.Error(err)
 			}
 		} else {
-			publicIP, err = GetIP(args.IPUrl, args.JsonPath)
+			publicIP, err = iptools.GetIP(args.IPUrl, args.JsonPath)
 			if err != nil {
 				log.Error(err)
 			}

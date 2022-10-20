@@ -6,10 +6,9 @@ build:
 	go build -o ${BINARY_NAME}
 
 test:
-	go test
+	go test -v ./...
 
-run:
-	go build -o ${BINARY_NAME}
+run: build
 	./${BINARY_NAME}
 
 clean:
