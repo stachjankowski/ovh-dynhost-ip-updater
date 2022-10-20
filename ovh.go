@@ -3,18 +3,12 @@ package main
 import (
 	"fmt"
 	"net/netip"
-	"os"
 
 	"github.com/ovh/go-ovh/ovh"
 )
 
 func GetClient() (*ovh.Client, error) {
-	endpoint := os.Getenv("ENDPOINT")
-	appKey := os.Getenv("APPLICATION_KEY")
-	appSecret := os.Getenv("APPLICATION_SECRET")
-	consumerKey := os.Getenv("CUSTOMER_KEY")
-
-	return ovh.NewClient(endpoint, appKey, appSecret, consumerKey)
+	return ovh.NewDefaultClient()
 }
 
 func FindDynHostRecord(client *ovh.Client, zone string, subDomain string) (*DynHostRecord, error) {
