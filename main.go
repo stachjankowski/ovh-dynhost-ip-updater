@@ -41,18 +41,24 @@ func CheckAndUpdate(publicIP netip.Addr, zone string, subDomain string) (bool, e
 
 func main() {
 	var args struct {
-		Zone      string `arg:"required"`
-		SubDomain string `arg:"required"`
-		IPUrl     string
+		Zone      string `arg:"required" help:"domain"`
+		SubDomain string `arg:"required" help:"subdomain"`
+		IPUrl     string `arg:"--ipurl" help:"address to the service that returns your public ip address" default:"https://api.ipify.org"`
 		JsonPath  string
-		IP        string
-		Loop      bool
+		IP        string `arg:"--ip" help:"IPv4 address"`
+		Loop      bool   `arg:"-l,--loop" help:"work in an infinite loop"`
+		Verbose   bool   `arg:"-v,--verbose" help:"verbosity level"`
 	}
 	arg.MustParse(&args)
 
 	log.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+	if args.Verbose {
+		log.SetLevel(logrus.DebugLevel)
+	} else {
+		log.SetLevel(logrus.InfoLevel)
+	}
 
 	for {
 		publicIP := netip.Addr{}
