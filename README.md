@@ -13,14 +13,13 @@ Lightweight Go tool to update IP address in [OVH DynHost](https://docs.ovh.com/g
 ### Docker
 
 ```
-docker build -t ovh-dynhost-ip-updater .
-docker run -e ENDPOINT=ovh-eu -e APPLICATION_KEY=... -e APPLICATION_SECRET=... -e CUSTOMER_KEY=... ovh-dynhost-ip-updater --zone example.com --subdomain abc --ip 140.82.121.4
+docker run -e ENDPOINT=ovh-eu -e APPLICATION_KEY=... -e APPLICATION_SECRET=... -e CUSTOMER_KEY=... stachjankowski/ovh-dynhost-ip-updater:latest --zone example.com --subdomain abc
 ```
 
 ### Standalone
 ```
 make
-./bin/ovh-dynhost-ip-updater --zone example.com --subdomain abc --ip 140.82.121.4
+./bin/ovh-dynhost-ip-updater --zone example.com --subdomain abc
 ```
 
 The program can be run once or run in a loop (every 60s). To run in a loop, use the switch  ```--loop```.
