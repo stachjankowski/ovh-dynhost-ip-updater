@@ -22,8 +22,10 @@ func TestGetIP(t *testing.T) {
 		"raw":                   {"127.0.0.2", "", netip.AddrFrom4([4]byte{127, 0, 0, 2}), true},
 		"raw-newline":           {"127.0.0.2\n", "", netip.AddrFrom4([4]byte{127, 0, 0, 2}), true},
 		"json":                  {"{\"ip\": \"127.0.0.2\"}", "$.ip", netip.AddrFrom4([4]byte{127, 0, 0, 2}), true},
+		"invalid-json":          {"{\"ip\": \"127.0.0.2\"", "$.ip", netip.Addr{}, false},
 		"json-invalid-jsonPath": {"{\"ip\": \"127.0.0.2\"}", "$.ip2", netip.Addr{}, false},
 		"json-no-jsonPath":      {"{\"ip\": \"127.0.0.2\"}", "", netip.Addr{}, false},
+		"json-invalid-type":     {"{\"ip\": {}}", "$.ip", netip.Addr{}, false},
 	}
 
 	for name, tt := range tests {
