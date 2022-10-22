@@ -12,6 +12,7 @@ import (
 
 var log = logrus.New()
 
+// CheckAndUpdate checks if an IP address update is needed and updates it if so
 func CheckAndUpdate(publicIP netip.Addr, zone string, subDomain string) (bool, error) {
 	client, err := ovhdynhost.GetClient()
 	if err != nil {
@@ -44,7 +45,7 @@ func main() {
 		Zone      string `arg:"required" help:"domain"`
 		SubDomain string `arg:"required" help:"subdomain"`
 		IPUrl     string `arg:"--ipurl" help:"address to the service that returns your public ip address" default:"https://api.ipify.org"`
-		JsonPath  string
+		JSONPath  string
 		IP        string `arg:"--ip" help:"IPv4 address"`
 		Loop      bool   `arg:"-l,--loop" help:"work in an infinite loop"`
 		Verbose   bool   `arg:"-v,--verbose" help:"verbosity level"`
@@ -61,7 +62,7 @@ func main() {
 	}
 
 	for {
-		publicIP := netip.Addr{}
+		var publicIP netip.Addr
 		var err error
 		if args.IP != "" {
 			publicIP, err = netip.ParseAddr(args.IP)
@@ -69,7 +70,7 @@ func main() {
 				log.Error(err)
 			}
 		} else {
-			publicIP, err = iptools.GetIP(args.IPUrl, args.JsonPath)
+			publicIP, err = iptools.GetIP(args.IPUrl, args.JSONPath)
 			if err != nil {
 				log.Error(err)
 			}

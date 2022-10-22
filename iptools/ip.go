@@ -2,7 +2,7 @@ package iptools
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/netip"
 	"strings"
@@ -10,20 +10,21 @@ import (
 	"github.com/spyzhov/ajson"
 )
 
-func GetIP(url string, jsonPath string) (netip.Addr, error) {
+// GetIP gets your public address from an external service.
+func GetIP(url string, jsonpath string) (netip.Addr, error) {
 	req, err := http.Get(url)
 	if err != nil {
 		return netip.Addr{}, err
 	}
 	defer req.Body.Close()
 
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		return netip.Addr{}, err
 	}
 
 	// raw format
-	if jsonPath == "" {
+	if jsonpath == "" {
 		return netip.ParseAddr(strings.TrimRight(string(body), "\n"))
 	}
 
@@ -32,14 +33,19 @@ func GetIP(url string, jsonPath string) (netip.Addr, error) {
 	if err != nil {
 		return netip.Addr{}, err
 	}
-	nodes, err := root.JSONPath(jsonPath)
-	for _, node := range nodes {
-		value, err := node.GetString()
+	nodes, err := root.JSONPath(jsonpath)
+	if err != nil {
+		return netip.Addr{}, err
+	}
+
+	if len(nodes) > 0 {
+		value, err := nodes[0].GetString()
 		if err != nil {
 			return netip.Addr{}, err
 		}
 		return netip.ParseAddr(value)
 	}
 
-	return netip.Addr{}, fmt.Errorf("There is no IP (%s) in result: %s", jsonPath, body)
+	return netip.Addr{},
+		fmt.Errorf("There is no IP (%s) in result: %s", jsonpath, body)
 }
